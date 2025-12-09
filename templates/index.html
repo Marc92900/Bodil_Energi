@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>WiFi Connect Prototype</title>
+    <style>
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* App card */
+        .app-container {
+            background: white;
+            padding: 40px 30px;
+            width: 350px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .app-container h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .app-container p {
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        /* Form */
+        .wifi-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .wifi-form label {
+            text-align: left;
+            color: #333;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .wifi-form input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .wifi-form input:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 5px rgba(74,144,226,0.4);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #444;
+            margin-top: -5px;
+        }
+
+        /* Button */
+        .btn {
+            margin-top: 10px;
+            padding: 12px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #3c7ac1;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .message.success {
+            color: #118a3b;
+        }
+
+        .message.error {
+            color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1>WiFi Connect</h1>
+        <p>Indtast dine WiFi-oplysninger til dit BEAM Plug.</p>
+
+        <form class="wifi-form" id="wifiForm">
+            <label for="ssid">WiFi Navn (SSID)</label>
+            <input type="text" id="ssid" placeholder="Fx: MitWifi123" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="••••••••" required>
+
+            <div class="toggle-row">
+                <input type="checkbox" id="togglePassword">
+                <label for="togglePassword">Vis password</label>
+            </div>
+
+            <button type="submit" class="btn">Forbind</button>
+        </form>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        // Password toggle
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+
+        togglePassword.addEventListener('change', () => {
+            passwordInput.type = togglePassword.checked ? 'text' : 'password';
+        });
+
+        // Form submit – send data til backend
+        const form = document.getElementById('wifiForm');
+        const messageBox = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const ssid = document.getElementById('ssid').value;
+            const password = document.getElementById('password').value;
+
+            messageBox.textContent = 'Sender data...';
+            messageBox.className = 'message';
+
+            try {
+                const response = await fetch('/save_wifi', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ssid, password })
+                });
+
+                if (response.ok) {
+                    messageBox.textContent = 'WiFi-oplysninger gemt!';
+                    messageBox.className = 'message success';
+                    form.reset();
+                    togglePassword.checked = false;
+                    passwordInput.type = 'password';
+                } else {
+                    const data = await response.json().catch(() => ({}));
+                    messageBox.textContent = data.error || 'Der skete en fejl ved gemning.';
+                    messageBox.className = 'message error';
+                }
+            } catch (err) {
+                console.error(err);
+                messageBox.textContent = 'Kunne ikke kontakte serveren.';
+                messageBox.className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+{% endblock %}
+

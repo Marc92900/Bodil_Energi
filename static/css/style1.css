@@ -78,3 +78,17 @@ body {
 .btn:hover {
     background: #3c7ac1;
 }
+
+.logo-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.logo-wrapper img {
+    width: 120px;
+    height: auto;
+    object-fit: contain;
+}
+
